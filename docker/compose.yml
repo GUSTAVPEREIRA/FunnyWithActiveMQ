@@ -1,0 +1,26 @@
+services:
+  postgres:
+    image: "postgres"
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: elAgendador
+      POSTGRES_PASSWORD: miAgenda
+      POSTGRES_DB: agenda
+
+  activemq:
+    image: apache/activemq-artemis:latest-alpine
+    hostname: "0.0.0.0"
+    environment:
+      ENABLE_JMX_EXPORTER: "true"
+    ports:
+      - "61616:61616"
+      - "8161:8161"
+
+volumes:
+  activemq-data: {}
+  postgres-data: {}
+
+networks:
+  backing-services:
+    driver: bridge
