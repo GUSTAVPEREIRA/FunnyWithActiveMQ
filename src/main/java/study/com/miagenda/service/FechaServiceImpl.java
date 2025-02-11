@@ -28,7 +28,7 @@ public class FechaServiceImpl implements FechaService {
     private FechaMapper fechaMapper;
     private MessageSender messageSender;
 
-    private final String FECHA_QUEUE = "agendamentos.agendador.notificar.success";
+    private final String FECHA_QUEUE = "agendamentos";
 
     @Transactional
     public FechaResponse createFecha(FechaCreateRequest fechaCreateRequest) throws JsonProcessingException, FechaInvalidaException {

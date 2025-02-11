@@ -10,13 +10,8 @@ public class FechaListener implements BaseListener {
 
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
-    @JmsListener(destination = "agendamentos.agendador.notificar.success")
-    public void receiveMessage(String message) {
-        logger.info(message);
-    }
-
     @JmsListener(destination = "agendamentos.agendador.notificar.erro")
-    public void receiveErrorMessage(String message) {
+    public void receiveMessage(String message) {
         logger.error("Ocurrió un error con la API.: {}", message);
     }
 }
