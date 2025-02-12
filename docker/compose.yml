@@ -1,26 +1,99 @@
 services:
+  kafka:
+    image: bitnami/kafka:latest
+    container_name: kafka-server
+    restart: always
+    networks:
+      - app-tier
+    ports:
+      - "9094:9094"
+    environment:
+      KAFKA_CFG_NODE_ID: 0
+      KAFKA_CFG_PROCESS_ROLES: controller,broker
+      KAFKA_CFG_CONTROLLER_QUORUM_VOTERS: 0@kafka-server:9093
+      KAFKA_CFG_LISTENERS: CONTAINER_NETWORK://:9092,CONTROLLER://:9093,EXTERNAL_NETWORK://:9094
+      KAFKA_CFG_ADVERTISED_LISTENERS: CONTAINER_NETWORK://kafka-server:9092,EXTERNAL_NETWORK://localhost:9094
+      KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,EXTERNAL_NETWORK:PLAINTEXT,CONTAINER_NETWORK:PLAINTEXT
+      KAFKA_CFG_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_CFG_INTER_BROKER_LISTENER_NAME: CONTAINER_NETWORK
+
+  kafka-ui:
+    image: docker.io/provectuslabs/kafka-ui:latest
+    container_name: kafka-ui
+    restart: always
+    networks:
+      - app-tier
+    ports:
+      - "9996:8080"
+    environment:
+      DYNAMIC_CONFIG_ENABLED: "true"
+      KAFKA_CLUSTERS_0_NAME: agendamientos_testes
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092
+    volumes:
+      - ./kafka-ui-config:/etc/kafkaui:rw,z
+    user: "0:0"
+
   postgres:
     image: "postgres"
+    container_name: postgres
+    restart: always
+    networks:
+      - app-tier
     ports:
       - "5432:5432"
     environment:
       POSTGRES_USER: elAgendador
       POSTGRES_PASSWORD: miAgenda
       POSTGRES_DB: agenda
+    volumes:
+      - ./data/postgres:/var/lib/postgresql/data
 
   activemq:
     image: apache/activemq-artemis:latest-alpine
+    container_name: activemq
+    restart: always
     hostname: "0.0.0.0"
+    networks:
+      - app-tier
     environment:
       ENABLE_JMX_EXPORTER: "true"
     ports:
       - "61616:61616"
       - "8161:8161"
+      - "5672:5672"
+
+  mongodb:
+    image: mongo:latest
+    container_name: mongodb
+    restart: always
+    networks:
+      - app-tier
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: admin
+    volumes:
+      - ./data/mongodb:/data/db
+
+  mongo-express:
+    image: mongo-express:latest
+    container_name: mongo-express
+    restart: always
+    networks:
+      - app-tier
+    ports:
+      - "8081:8081"
+    environment:
+      ME_CONFIG_MONGODB_ADMINUSERNAME: admin
+      ME_CONFIG_MONGODB_ADMINPASSWORD: admin
+      ME_CONFIG_MONGODB_URL: mongodb://admin:admin@mongodb:27017/
 
 volumes:
-  activemq-data: {}
-  postgres-data: {}
+  activemq-data: { }
 
 networks:
   backing-services:
+    driver: bridge
+  app-tier:
     driver: bridge
